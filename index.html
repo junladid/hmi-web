@@ -1,24 +1,44 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>HMI Data</title>
+    <title>HMI Control</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
     <h1>ข้อมูลจาก QR Code</h1>
-    <p id="data"></p>
-    <button onclick="sendData()">ยืนยัน</button>
+    <div id="dataDisplay"></div>
+    <button onclick="confirmData()">ยืนยัน</button>
 
     <script>
-        // ดึงข้อมูลจาก URL
+        // ดึงข้อมูลจาก Query String
         const urlParams = new URLSearchParams(window.location.search);
-        const data = urlParams.get('data');
-        document.getElementById('data').innerText = data || 'ไม่มีข้อมูล';
+        const data = urlParams.get('data') || '{"id":1,"value":"ไม่มีข้อมูล"}';
+        const parsedData = JSON.parse(data);
+        document.getElementById('dataDisplay').innerText = parsedData.value;
 
-        // ฟังก์ชันส่งข้อมูลเมื่อกดปุ่ม
-        function sendData() {
-            alert('ข้อมูล "' + data + '" ถูกส่งไปยัง HMI');
-            // โค้ดสำหรับส่งข้อมูลไป HMI จะอยู่ในขั้นตอน 4
+        function confirmData() {
+            sendToMQTT(parsedData);
+        }
+
+        function sendToMQTT(data) {
+            // เชื่อมต่อ HiveMQ Cloud Free Tier
+            const client = mqtt.connect('wss://your-cluster-id.s1.eu.hivemq.cloud:8884/mqtt', {
+                username: 'your-username',
+                password: 'your-password'
+            });
+
+            client.on('connect', () => {
+                console.log('เชื่อมต่อ MQTT สำเร็จ');
+                client.publish('hmi/cmt3152x/data', JSON.stringify(data), { qos: 1 }, () => {
+                    console.log('ส่งข้อมูลไปยัง HMI แล้ว');
+                    client.end();
+                });
+            });
+
+            client.on('error', (err) => {
+                console.error('เกิดข้อผิดพลาด:', err);
+            });
         }
     </script>
 </body>
