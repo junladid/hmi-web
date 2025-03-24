@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>HMI Data</title>
+</head>
+<body>
+    <h1>ข้อมูลจาก QR Code</h1>
+    <p id="data"></p>
+    <button onclick="sendData()">ยืนยัน</button>
+
+    <script>
+        // ดึงข้อมูลจาก URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const data = urlParams.get('data');
+        document.getElementById('data').innerText = data || 'ไม่มีข้อมูล';
+
+        // ฟังก์ชันส่งข้อมูลเมื่อกดปุ่ม
+        function sendData() {
+            alert('ข้อมูล "' + data + '" ถูกส่งไปยัง HMI');
+            // โค้ดสำหรับส่งข้อมูลไป HMI จะอยู่ในขั้นตอน 4
+        }
+    </script>
+</body>
+</html>
