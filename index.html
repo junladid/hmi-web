@@ -6,7 +6,7 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
-    <h1>ข้อมูลจาก QR Code</h1>
+    <h1>ข้อมูลจาก QR Code V2</h1>
     <div id="dataDisplay"></div>
     <button onclick="confirmData()">ยืนยัน</button>
 
@@ -22,8 +22,8 @@
 
         function sendToMQTT(data) {
             const client = mqtt.connect('wss://0646ee87c4224ed6b2d89d41dab8aA1.s1.eu.hivemq.cloud:8884/mqtt', {
-                username: 'your-username',
-                password: 'your-password'
+                username: 'CTLENG',
+                password: 'Ctl123456#'
             });
 
             client.on('connect', () => {
