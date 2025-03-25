@@ -11,7 +11,6 @@
     <button onclick="confirmData()">ยืนยัน</button>
 
     <script>
-        // ดึงข้อมูลจาก Query String
         const urlParams = new URLSearchParams(window.location.search);
         const data = urlParams.get('data') || '{"id":1,"value":"ไม่มีข้อมูล"}';
         const parsedData = JSON.parse(data);
@@ -22,8 +21,7 @@
         }
 
         function sendToMQTT(data) {
-            // เชื่อมต่อ HiveMQ Cloud Free Tier
-            const client = mqtt.connect('wss://0646ee87c4224ed6b2d98d4d1dabb8aa.s1.eu.hivemq.cloud:8884/mqtt', {
+            const client = mqtt.connect('wss://0646ee87c4224ed6b2d89d41dab8aA1.s1.eu.hivemq.cloud:8884/mqtt', {
                 username: 'your-username',
                 password: 'your-password'
             });
