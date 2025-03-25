@@ -4,23 +4,57 @@
     <meta charset="UTF-8">
     <title>HMI Control</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        #statusMessage {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none; /* ซ่อนไว้ก่อน */
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 </head>
 <body>
-    <h1>ข้อมูลจาก QR Code V2</h1>
+    <h1>ข้อมูลจาก QR Code</h1>
     <div id="dataDisplay"></div>
     <button onclick="confirmData()">ยืนยัน</button>
+    <div id="statusMessage"></div> <!-- ส่วนแสดงสถานะ -->
 
     <script>
+        // ตรวจสอบว่า MQTT.js โหลดสำเร็จ
+        if (typeof mqtt === 'undefined') {
+            console.error('MQTT.js ไม่โหลด');
+        } else {
+            console.log('MQTT.js โหลดสำเร็จ');
+        }
+
+        // ดึงข้อมูลจาก Query String
         const urlParams = new URLSearchParams(window.location.search);
         const data = urlParams.get('data') || '{"id":1,"value":"ไม่มีข้อมูล"}';
         const parsedData = JSON.parse(data);
         document.getElementById('dataDisplay').innerText = parsedData.value;
 
+        // ฟังก์ชันเมื่อกดปุ่มยืนยัน
         function confirmData() {
+            console.log('กดปุ่มยืนยันแล้ว');
             sendToMQTT(parsedData);
         }
 
+        // ฟังก์ชันส่งข้อมูลไป MQTT และแสดงสถานะ
         function sendToMQTT(data) {
+            console.log('เริ่มส่งข้อมูลไป MQTT');
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.style.display = 'block'; // แสดง div
+            statusDiv.innerText = 'กำลังส่งข้อมูล...';
+            statusDiv.className = ''; // รีเซ็ต class
+
             const client = mqtt.connect('wss://0646ee87c4224ed6b2d89d41dab8aA1.s1.eu.hivemq.cloud:8884/mqtt', {
                 username: 'CTLENG',
                 password: 'Ctl123456#'
@@ -28,14 +62,34 @@
 
             client.on('connect', () => {
                 console.log('เชื่อมต่อ MQTT สำเร็จ');
-                client.publish('hmi/cmt3152x/data', JSON.stringify(data), { qos: 1 }, () => {
-                    console.log('ส่งข้อมูลไปยัง HMI แล้ว');
-                    client.end();
+                client.publish('hmi/cmt3152x/data', JSON.stringify(data), { qos: 1 }, (err) => {
+                    if (err) {
+                        console.error('เกิดข้อผิดพลาดในการส่ง:', err);
+                        statusDiv.innerText = 'การส่งข้อมูลไม่สำเร็จ: ' + err.message;
+                        statusDiv.className = 'error';
+                    } else {
+                        console.log('ส่งข้อมูลไปยัง HMI แล้ว');
+                        statusDiv.innerText = 'การส่งข้อมูลสำเร็จ';
+                        statusDiv.className = 'success';
+                    }
+                    client.end(); // ปิดการเชื่อมต่อ
                 });
             });
 
             client.on('error', (err) => {
                 console.error('เกิดข้อผิดพลาด:', err);
+                statusDiv.innerText = 'การเชื่อมต่อ MQTT ล้มเหลว: ' + err.message;
+                statusDiv.className = 'error';
+            });
+
+            client.on('close', () => {
+                console.log('การเชื่อมต่อ MQTT ถูกปิด');
+            });
+
+            client.on('offline', () => {
+                console.log('MQTT Client ออฟไลน์');
+                statusDiv.innerText = 'MQTT Client ออฟไลน์';
+                statusDiv.className = 'error';
             });
         }
     </script>
